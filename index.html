@@ -32,7 +32,7 @@
         <div class="col-1"></div>
         <div class="col-6">
             <br>
-            <div class="row border rounded border-dark">
+            <div class="row border rounded border-dark bg-info text-white">
                 <div id="city"></div>
             </div>
             <div class="row">
@@ -57,11 +57,13 @@
         var today = moment().format("MMMM Do YYYY")
 
         var cities = []
+        var pastCity = []
 
         function displayCityInfo() {
 
             var city = $("#citySearch").val().trim();
-            var queryURL = "https://api.openweathermap.org/data/2.5/weather?q=" + city +
+
+            var queryURL = "https://api.openweathermap.org/data/2.5/weather?q=" + city  +
                 "&units=imperial&appid=6d04cdd4b56594f37842d3a236ca3d6f";
             var forecastURL = "http://api.openweathermap.org/data/2.5/forecast?q=" + city +
                 "&units=imperial&appid=6d04cdd4b56594f37842d3a236ca3d6f";
@@ -133,7 +135,7 @@
                     var theDate = $("<h3>");
                     theDate.addClass("card-title");
                     iDiv.addClass("col-sm")
-                    card.addClass("card");
+                    card.addClass("card bg-info text-white");
                     cardBody.addClass("card-body");
                     card.attr("style", "width: auto");
 
@@ -167,28 +169,52 @@
 
         }
 
+        function pastcities() {
+            for (let y = 0; y < localStorage.length; y++) {
+                var ci = $("<button>");
+                ci.addClass("pastcity rounded bg-info text-white");
+                ci.attr("data-name", localStorage.getItem(localStorage.key(y)));
+                ci.text(localStorage.getItem(localStorage.key(y)));
+
+                $("#previousSearch").append(ci)
+
+            }
+        }
+
+        function pastCitySearch() {
+            var newCity = $("#button").text();
+            $("#citySearch").append(newCity);
+            displayCityInfo();
+        }
+
         function renderCities() {
             $("#previousSearch").empty();
+            $("#dayCast").empty();
+            $("#city").empty();
 
             for (var x = 0; x < cities.length; x++) {
                 var c = $("<button>");
-                c.addClass("city");
+                c.addClass("city rounded bg-info text-white");
                 c.attr("data-name", cities[x]);
                 c.text(cities[x]);
                 $("#previousSearch").append(c)
             }
         }
-
+        
         $("#search").on("click", function (event) {
             event.preventDefault();
             var city = $("#citySearch").val().trim();
             cities.push(city);
+            pastCity.push(city)
+            localStorage.setItem(pastCity, city);
             renderCities();
         });
 
         $(document).on("click", ".city", displayCityInfo);
+        $(document).on("click", ".pastcity", pastCitySearch);
 
         renderCities();
+        pastcities();
     </script>
 </body>
 
