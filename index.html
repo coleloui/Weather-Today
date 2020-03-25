@@ -27,6 +27,7 @@
                     <button class="btn btn-outline-secondary city" type="button" id="search">Search</button>
                 </div>
             </div>
+            <button class="btn btn-outline-secondary" id="clearMe" type="button">Clear Previous Search</button>
             <div id="previousSearch"></div>
         </div>
         <div class="col-1"></div>
@@ -60,12 +61,15 @@
         var pastCity = []
 
         function displayCityInfo() {
+            $("#dayCast").empty();
+            $("#city").empty();
+
 
             var city = $("#citySearch").val().trim();
 
-            var queryURL = "https://api.openweathermap.org/data/2.5/weather?q=" + city  +
+            var queryURL = "https://api.openweathermap.org/data/2.5/weather?q=" + city +
                 "&units=imperial&appid=6d04cdd4b56594f37842d3a236ca3d6f";
-            var forecastURL = "http://api.openweathermap.org/data/2.5/forecast?q=" + city +
+            var forecastURL = "https://api.openweathermap.org/data/2.5/forecast?q=" + city +
                 "&units=imperial&appid=6d04cdd4b56594f37842d3a236ca3d6f";
 
             $.ajax({
@@ -127,7 +131,7 @@
             }).then(function (response) {
                 for (let i = 0; i < 5; i++) {
                     var day = response.list[8 * i].dt_txt;
-                    var subDay = day.substring(0,10)
+                    var subDay = day.substring(0, 10)
                     // console.log(day)
                     var iDiv = $("<div>");
                     var card = $("<div>");
@@ -154,7 +158,7 @@
                     rTemperEl.addClass("card-text")
                     rTemperEl.html("Temperature: " + rTemper + " F");
                     cardBody.append(rTemperEl);
-                    
+
                     var rHumid = response.list[8 * i].main.humidity;
                     var rHumidEl = $("<p>");
                     rHumidEl.addClass("card-text")
@@ -182,15 +186,120 @@
         }
 
         function pastCitySearch() {
-            var newCity = $("#button").text();
+            $("#dayCast").empty();
+            $("#city").empty();
+            var newCity = $(this).attr("data-name");
             $("#citySearch").append(newCity);
-            displayCityInfo();
+
+
+            var queryURL = "https://api.openweathermap.org/data/2.5/weather?q=" + newCity +
+                "&units=imperial&appid=6d04cdd4b56594f37842d3a236ca3d6f";
+            var forecastURL = "https://api.openweathermap.org/data/2.5/forecast?q=" + newCity +
+                "&units=imperial&appid=6d04cdd4b56594f37842d3a236ca3d6f";
+
+            $.ajax({
+                url: queryURL,
+                method: "GET"
+            }).then(function (response) {
+                var newDiv = $("<div>");
+                var weatherIcon = response.weather[0].icon;
+                var weatherURL = "http://openweathermap.org/img/wn/" + weatherIcon + "@2x.png";
+                var imgEl = $("<img>");
+                imgEl.attr("src", weatherURL);
+                var rCity = response.name;
+                var rCityEl = $("<h3>");
+                rCityEl.html(rCity + ", " + today);
+                rCityEl.addClass("font-weight-bold focus");
+                rCityEl.append(imgEl);
+                newDiv.append(rCityEl);
+
+                var rTemp = response.main.temp;
+                var rTempEl = $("<p>");
+                rTempEl.html("Temperature: " + rTemp + " F");
+                newDiv.append(rTempEl);
+
+                var rHumidity = response.main.humidity;
+                var rHumidityEl = $("<p>");
+                rHumidityEl.html("Humidity: " + rHumidity + "%");
+                newDiv.append(rHumidityEl);
+
+                var rWind = response.wind.speed;
+                var rWindEl = $("<p>");
+                rWindEl.html("Wind Speed: " + rWind + "MPH");
+                newDiv.append(rWindEl);
+
+                var lat = response.coord.lat;
+                var lon = response.coord.lon;
+
+                uvURL =
+                    "http://api.openweathermap.org/data/2.5/uvi?appid=6d04cdd4b56594f37842d3a236ca3d6f&lat=" +
+                    lat + "&lon=" + lon
+
+
+                $.ajax({
+                    url: uvURL,
+                    method: "GET"
+                }).then(function (response) {
+                    var rUv = response.value;
+                    var rUvEl = $("<p>");
+                    rUvEl.html("UV Index: " + rUv);
+                    newDiv.append(rUvEl);
+                })
+
+                $("#city").append(newDiv);
+
+            })
+
+            $.ajax({
+                url: forecastURL,
+                method: "GET"
+            }).then(function (response) {
+                for (let i = 0; i < 5; i++) {
+                    var day = response.list[8 * i].dt_txt;
+                    var subDay = day.substring(0, 10)
+                    // console.log(day)
+                    var iDiv = $("<div>");
+                    var card = $("<div>");
+                    var cardBody = $("<div>");
+                    var theDate = $("<h3>");
+                    theDate.addClass("card-title");
+                    iDiv.addClass("col-sm")
+                    card.addClass("card bg-info text-white");
+                    cardBody.addClass("card-body");
+                    card.attr("style", "width: auto");
+
+                    theDate.append(subDay);
+                    cardBody.append(theDate)
+
+
+                    var weatherIcon = response.list[8 * i].weather[0].icon;
+                    var weatherURL = "http://openweathermap.org/img/wn/" + weatherIcon + "@2x.png";
+                    var imgEl = $("<img>");
+                    imgEl.attr("src", weatherURL);
+                    cardBody.append(imgEl);
+
+                    var rTemper = response.list[8 * i].main.temp;
+                    var rTemperEl = $("<p>");
+                    rTemperEl.addClass("card-text")
+                    rTemperEl.html("Temperature: " + rTemper + " F");
+                    cardBody.append(rTemperEl);
+
+                    var rHumid = response.list[8 * i].main.humidity;
+                    var rHumidEl = $("<p>");
+                    rHumidEl.addClass("card-text")
+                    rHumidEl.html("Humidity: " + rHumid + "%");
+                    cardBody.append(rHumidEl);
+
+                    card.append(cardBody);
+                    iDiv.append(card);
+                    $("#dayCast").append(iDiv);
+                }
+            })
+
         }
 
         function renderCities() {
             $("#previousSearch").empty();
-            $("#dayCast").empty();
-            $("#city").empty();
 
             for (var x = 0; x < cities.length; x++) {
                 var c = $("<button>");
@@ -200,18 +309,25 @@
                 $("#previousSearch").append(c)
             }
         }
-        
+
+        function clearCitySearch() {
+            $("#previousSearch").empty();
+            localStorage.clear();
+        }
+
         $("#search").on("click", function (event) {
             event.preventDefault();
+            event.stopPropagation()
             var city = $("#citySearch").val().trim();
             cities.push(city);
             pastCity.push(city)
             localStorage.setItem(pastCity, city);
             renderCities();
+            displayCityInfo();
         });
 
-        $(document).on("click", ".city", displayCityInfo);
         $(document).on("click", ".pastcity", pastCitySearch);
+        $(document).on("click", "#clearMe", clearCitySearch);
 
         renderCities();
         pastcities();
